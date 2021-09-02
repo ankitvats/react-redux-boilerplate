@@ -15,7 +15,6 @@ const INITIAL_STATE = {
 
 // Reducer
 export default function userReducer(state = INITIAL_STATE, action) {
-  console.log(action.type);
   switch (action.type) {
     case FETCH_USER_START:
       return {
