@@ -1,4 +1,5 @@
 import axios from "axios";
+import { createSelector } from "reselect";
 
 // Action Creators
 const FETCH_USER_START = "users/fetchUserStart";
@@ -65,3 +66,15 @@ export const fetchUsers = () => async (dispatch) => {
     dispatch(fetchUserFailure(err.message));
   }
 };
+
+// Selectors - Using reselect (memoized selectors)
+export const getAllUsers = createSelector(
+  (state) => state.users, // input
+  // the output of this (users) will be passed to next function
+  (users) => users.list
+);
+
+export const getTop5Users = createSelector(
+  (state) => state.users,
+  (users) => users.list.slice(0, 5)
+);
