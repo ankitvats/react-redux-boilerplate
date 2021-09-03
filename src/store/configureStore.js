@@ -1,18 +1,27 @@
-import { createStore, applyMiddleware, compose } from "redux";
-import thunk from "redux-thunk";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import {
+  FLUSH,
+  REHYDRATE,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+} from "redux-persist";
 import reducer from "./reducer";
+import api from "./middleware/api";
 
-const middlewares = [thunk];
-
-// createStore(reducer,applyMiddleware)
-// createStore(reducer,compose(mWare,devtool))
-export default function configureStore() {
-  return createStore(
+// thunk & devtool config is included in toolkit
+export default function myStore() {
+  return configureStore({
     reducer,
-    compose(
-      applyMiddleware(...middlewares),
-      window.__REDUX_DEVTOOLS_EXTENSION__ &&
-        window.__REDUX_DEVTOOLS_EXTENSION__()
-    )
-  );
+    middleware: [
+      ...getDefaultMiddleware({
+        // to ignore some warnings with react-persist
+        serializableCheck: {
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        },
+      }),
+      api,
+    ],
+  });
 }

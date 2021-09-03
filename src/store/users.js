@@ -1,69 +1,54 @@
-import axios from "axios";
 import { createSelector } from "reselect";
+import { createSlice } from "@reduxjs/toolkit";
+import { apiCallBegan } from "./api";
 
-// Action Creators
-const FETCH_USER_START = "users/fetchUserStart";
-const FETCH_USER_SUCCESS = "users/fetchUserSuccess";
-const FETCH_USER_FAILURE = "users/fetchUserFailure";
+const slice = createSlice({
+  name: "users",
+  initialState: {
+    list: [],
+    isFetching: false,
+    error: "",
+  },
+  reducers: {
+    // actions => action handler (state,action)
+    usersRequested: (users, action) => {
+      // we can use mutable code here, coz toolkit uses immer library
+      users.isFetching = true;
+    },
 
-// Initial State
-const INITIAL_STATE = {
-  list: [],
-  isFetching: false,
-  error: "",
-};
+    usersReceived: (users, action) => {
+      users.list = action.payload;
+      users.isFetching = false;
+    },
 
-// Reducer
-export default function userReducer(state = INITIAL_STATE, action) {
-  switch (action.type) {
-    case FETCH_USER_START:
-      return {
-        ...state,
-        isFetching: true,
-      };
-    case FETCH_USER_SUCCESS:
-      return {
-        ...state,
-        list: action.payload,
-        isFetching: false,
-      };
-    case FETCH_USER_FAILURE:
-      return {
-        ...state,
-        error: action.payload,
-        isFetching: false,
-      };
-    default:
-      return state;
-  }
-}
-
-// Action Creators
-export const fetchUserStart = () => ({
-  type: FETCH_USER_START,
+    usersRequestFailed: (users, action) => {
+      users.error = action;
+      users.isFetching = false;
+    },
+  },
 });
 
-export const fetchUserSuccess = (users) => ({
-  type: FETCH_USER_SUCCESS,
-  payload: users,
-});
+// console.log(slice);
+// {
+// actions: {usersRequested: ƒ, usersReceived: ƒ, usersRequestFailed: ƒ}
+// caseReducers: {usersRequested: ƒ, usersReceived: ƒ, usersRequestFailed: ƒ}
+// name: "users"
+// reducer: ƒ (state, action)
+// }
 
-export const fetchUserFailure = (error) => ({
-  type: FETCH_USER_FAILURE,
-  payload: error,
-});
+const { usersRequested, usersReceived, usersRequestFailed } = slice.actions;
+export default slice.reducer;
 
-// Async Action Creator - Using Thunk
-export const fetchUsers = () => async (dispatch) => {
-  dispatch(fetchUserStart());
-
-  try {
-    const url = "https://jsonplaceholder.typicode.com/users";
-    const users = await axios.get(url);
-    dispatch(fetchUserSuccess(users.data));
-  } catch (err) {
-    dispatch(fetchUserFailure(err.message));
-  }
+// action creator
+export const fetchUsers = () => (dispatch) => {
+  return dispatch(
+    apiCallBegan({
+      url: "users",
+      onStart: usersRequested.type,
+      onSuccess: usersReceived.type,
+      onError: usersRequestFailed.type,
+    })
+  );
 };
 
 // Selectors - Using reselect (memoized selectors)
